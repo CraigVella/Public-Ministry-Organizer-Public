@@ -12,12 +12,14 @@
 </template>
 
 <script>
+import Cookies from 'js-cookie';
+
 import PageLogin from './components/PageLogin.vue'
 import PageFooter from './components/PageFooter.vue'
 import PublicNavbar from './components/PublicNavbar.vue'
 
 import PMOLib from 'pmo-lib/PMOLib'
-let adminLib = new PMOLib.PMO(true);
+let pmoLib = new PMOLib.PMO();
 
 export default {
   name: 'PMOPublic',
@@ -36,7 +38,7 @@ export default {
           congName: ''
         }
       },
-      pageSelect: 'publishers'
+      pageSelect: 'upcoming'
     }
   },
   methods: {
@@ -45,32 +47,49 @@ export default {
     },
     loginComplete() {
       this.loading = true;
-      adminLib.getUserObject().then(r => {
+      pmoLib.getUserObject().then(r => {
         this.loading = false;
         this.userObj = r.data.api.user;
         this.logged_in = true;
       }).catch( () => {
-        adminLib.generalError(this, 'There was an error loading Public Ministry Organizer - Please try again later');
+        pmoLib.generalError(this, 'There was an error loading Public Ministry Organizer - Please try again later');
       });
     },
     logout() {
       this.loading = true;
-      adminLib.logout().then(() => {
+      pmoLib.logout().then(() => {
+        Cookies.remove('deviceId');
         this.userObj = {};
         this.loading = false;
         this.logged_in = false;
       }).catch( () => {
-        adminLib.generalError(this,'There was an error logging out - Please try again later');
+        pmoLib.generalError(this,'There was an error logging out - Please try again later');
       });
     }
   },
   mounted() {
-    adminLib.isLoggedIn().then( r=> {
+    pmoLib.isLoggedIn().then( r=> {
       this.logged_in = r;
       if (this.logged_in) {
         this.loginComplete();
       } else {
-        this.loading = false;
+        // attempt to see if we have a device ID
+        if (Cookies.get('deviceId')) {
+          // We have a cookie
+          pmoLib.deviceLogin(Cookies.get('deviceId')).then(r=> {
+            this.logged_in = r;
+            if (this.logged_in) {
+              // rewrite cookie for longer time
+              Cookies.set('deviceId', Cookies.get('deviceId'),{expires: 365});
+              this.loginComplete();
+            } else {
+              this.loading = false; // we have failed the device Id lets drop it
+              Cookies.remove('deviceId');
+            }
+          })
+        } else {
+          this.loading = false; // No cookie no login
+        }
       }
     })
   }

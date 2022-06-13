@@ -17,6 +17,13 @@
                         <b-field label="Pin">
                             <b-input type="password" v-on:keyup.native.enter="login" :disabled="loading" password-reveal icon='form-textbox-password' v-model="pin"></b-input>
                         </b-field>
+                        <section>
+                            <b-field grouped>
+                                <p class="control">
+                                    <b-checkbox v-model="rememberDevice">Remember this device</b-checkbox>
+                                </p>
+                            </b-field>
+                        </section>
                         <p v-if="hasError" class="has-text-centered login-error">{{errorMessage}}</p>
                     </div>
                 </div>
@@ -30,7 +37,8 @@
 
 <script>
 import PMOLib from 'pmo-lib/PMOLib'
-let adminLib = new PMOLib.PMO(true);
+let pmoLib = new PMOLib.PMO();
+import Cookies from 'js-cookie';
 
 export default {
     name: "PageLogin",
@@ -39,6 +47,7 @@ export default {
             email: "",
             pin: "",
             errorMessage: "",
+            rememberDevice: false,
             hasError: false,
             loading: false
         }
@@ -53,17 +62,22 @@ export default {
             if (this.loading) return;
             this.hasError = false;
             this.loading = true;
-            adminLib.loginUser(this.email, this.pin).then(data=>{
+            pmoLib.loginUser(this.email, this.pin, this.rememberDevice).then(data=>{
                 this.loading = false;
                 if (data.api.status.error) {
                     this.hasError = true;
                     this.errorMessage = data.api.status.info;
                 } else {
+                    if (this.rememberDevice) {
+                        if ('deviceId' in data.api.user) {
+                            Cookies.set('deviceId', data.api.user.deviceId, {expires: 365})
+                        }
+                    }
                     this.$emit('logged-in');
                 }
             }).catch(()=>{
                 this.loading = false;
-                adminLib.generalError(this, "There was an error processing your login request, please try again");
+                pmoLib.generalError(this, "There was an error processing your login request, please try again");
             });
         }
     }, 
