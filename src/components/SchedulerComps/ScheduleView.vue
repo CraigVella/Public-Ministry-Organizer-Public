@@ -10,47 +10,56 @@
             </p>
         </b-field>
         
-        <div class="columns is-centered is-gapless">
+        <div class="columns is-centered">
             <div class="column">
-                <div class="column day-header">
-                    <p class="has-text-centered">Wednesday - 6/13/2022</p>
-                </div>
-                <div class="column">
-                    Day 1 Data 1
-                </div>
-                <div class="column">
-                    Day 1 Data 2
-                </div>
-                <div class="column">
-                    Day 1 Data 3
-                </div>
-                <div class="column">
-                    Day 1 Data 4
+                <div class="panel">
+                    <p class="panel-heading">
+                        Wednesday 6/10/2022
+                    </p>
+                    <p class="panel-block">
+                        Data - 1
+                    </p>
+                    <p class="panel-block">
+                        Data - 2
+                    </p>
+                    <p class="panel-block">
+                        Data - 3
+                    </p>
+                    <p class="panel-block">
+                        Data - 4
+                    </p>
                 </div>
             </div>
             <div class="column">
-                <div class="column day-header">
-                    <p class="has-text-centered">Thursday - 6/28/2022</p>
-                </div>
-                <div class="column">
-                    Day 2 Data 2
-                </div>
-                <div class="column">
-                    Day 2 Data 2
+                <div class="panel">
+                    <p class="panel-heading">
+                        Thurday 6/11/2022
+                    </p>
+                    <p class="panel-block">
+                        Data - 1
+                    </p>
+                    <p class="panel-block">
+                        Data - 2
+                    </p>
+                    <p class="panel-block">
+                        Data - 3
+                    </p>
                 </div>
             </div>
             <div class="column">
-                <div class="column day-header">
-                    <p class="has-text-centered">Friday - 6/31/2022</p>
-                </div>
-                <div class="column">
-                    Day 3 Data 3
-                </div>
-                <div class="column">
-                    Day 3 Data 2
-                </div>
-                <div class="column">
-                    Day 3 Data 3
+                <div class="panel">
+                    <p class="panel-heading">
+                        Friday 6/12/2022
+                    </p>
+                    <p class="panel-block">
+                        Data - 1
+                    </p>
+                    <p class="panel-block">
+                        Data - 2
+                    </p>
+                    <p class="panel-block">
+                        Data - 3
+                    </p>
                 </div>
             </div>
         </div>
@@ -99,20 +108,3 @@ export default {
     }
 }
 </script>
-
-<style lang="scss">
-
-@import '@/scss/custom.scss';
-
-.day-header {
-    border: solid 1px $primary;
-    border-collapse: collapse;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-    
-    background-color: $primary-light;
-    margin-left: 1px;
-    margin-right: 1px;
-}
-
-</style>
