@@ -4,8 +4,7 @@
     <PageLogin v-if="!logged_in" v-on:logged-in="loginComplete"></PageLogin>
     <div v-if="logged_in">
       <PublicNavbar v-on:logout="logout" v-on:menuselect="menuSelect"></PublicNavbar>
-      <!--<AdminPublishers v-if="pageSelect === 'publishers'" :user='userObj'></AdminPublishers>
-      <AdminLocations v-if="pageSelect === 'locations'" :user="userObj"></AdminLocations>-->
+      <PublicScheduler v-if="pageSelect === 'scheduler'" :user="userObj"></PublicScheduler>
     </div>
     <PageFooter></PageFooter>
   </div>
@@ -17,6 +16,7 @@ import Cookies from 'js-cookie';
 import PageLogin from './components/PageLogin.vue'
 import PageFooter from './components/PageFooter.vue'
 import PublicNavbar from './components/PublicNavbar.vue'
+import PublicScheduler from './components/PublicScheduler.vue';
 
 import PMOLib from 'pmo-lib/PMOLib'
 let pmoLib = new PMOLib.PMO();
@@ -27,7 +27,8 @@ export default {
     titleTemplate: "Public Ministry Organizer %s"
   },
   components: {
-    PageLogin, PageFooter, PublicNavbar
+    PageLogin, PageFooter, PublicNavbar,
+    PublicScheduler
   }, 
   data() {
     return {
