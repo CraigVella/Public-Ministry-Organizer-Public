@@ -30,9 +30,7 @@ export default {
         }
     },
     mounted() {
-        if (this.signup === undefined) {
-            console.log("HERE");
-        }
+        
     }
 }
 </script>

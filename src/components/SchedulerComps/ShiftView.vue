@@ -4,7 +4,7 @@
             {{shiftTimes}}
         </p>
         <a class="panel-block" v-for="x in shift.slots" :key="x">
-            <SlotView v-if="!loading" :idx="x-1" :signup="sortedSignups.signups[x-1]" :userObj="userObj" :shiftId="shift.id"></SlotView>
+            <SlotView v-if="!loading" :idx="x-1" :signup="sortedSignups ? sortedSignups.signups[x-1] : {}" :userObj="userObj" :shiftId="shift.id"></SlotView>
             <b-skeleton :active="loading"></b-skeleton>
         </a>
         <p class="panel-block">
