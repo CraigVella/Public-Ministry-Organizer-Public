@@ -4,63 +4,20 @@
             <p class="control">
                 <b-button class="button is-primary" icon-left="chevron-left" @click="lastSchedule"></b-button>
             </p>
-                <b-datepicker style="text-align-last: center" v-model="date" trap-focus></b-datepicker>
+                <b-datepicker @input="buildCurrentDayList(dayListSize,date)" style="text-align-last: center" v-model="date" trap-focus></b-datepicker>
             <p class="control">
                 <b-button class="button is-primary" icon-left="chevron-right" @click="nextSchedule"></b-button>
             </p>
         </b-field>
         
         <div class="columns is-centered">
-            <div class="column">
+            <div v-for="(day,idx) in currentDayList" v-bind:key="idx" class="column">
                 <div class="panel">
-                    <p class="panel-heading">
-                        Wednesday 6/10/2022
-                    </p>
-                    <p class="panel-block">
-                        Data - 1
-                    </p>
-                    <p class="panel-block">
-                        Data - 2
-                    </p>
-                    <p class="panel-block">
-                        Data - 3
-                    </p>
-                    <p class="panel-block">
-                        Data - 4
+                    <p class="panel-heading has-text-centered">
+                        {{formattedDateText(day.date,'dddd - M/D/YY')}}
                     </p>
                 </div>
-            </div>
-            <div class="column">
-                <div class="panel">
-                    <p class="panel-heading">
-                        Thurday 6/11/2022
-                    </p>
-                    <p class="panel-block">
-                        Data - 1
-                    </p>
-                    <p class="panel-block">
-                        Data - 2
-                    </p>
-                    <p class="panel-block">
-                        Data - 3
-                    </p>
-                </div>
-            </div>
-            <div class="column">
-                <div class="panel">
-                    <p class="panel-heading">
-                        Friday 6/12/2022
-                    </p>
-                    <p class="panel-block">
-                        Data - 1
-                    </p>
-                    <p class="panel-block">
-                        Data - 2
-                    </p>
-                    <p class="panel-block">
-                        Data - 3
-                    </p>
-                </div>
+                <ShiftView v-for="(shift,idx) in day.shifts" v-bind:key="idx" :shift="shift" :date="formattedDateText(day.date,'YYYY-MM-DD')"></ShiftView>
             </div>
         </div>
         <b-loading :active="loading" :is-full-page="false"></b-loading>
@@ -68,10 +25,16 @@
 </template>
 
 <script>
+import ShiftView from './ShiftView.vue';
+
 import PMOLib from 'pmo-lib/PMOLib';
 let pmoLib = new PMOLib.PMO();
 
 import DayJS from 'dayjs';
+import tz from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
+DayJS.extend(tz);
+DayJS.extend(utc);
 
 export default {
     name: "ScheduleView",
@@ -82,14 +45,22 @@ export default {
         return {
             schedule: null,
             loading: false,
-            date: DayJS().toDate()
+            date: DayJS().set('hour',0).set('minute',0).set('second', 0).toDate(),
+            assignmentDays: new PMOLib.DayList(),
+            currentDayList: [],
+            dayListSize: 3
         }
     },
     methods: {
         getSchedule() {
             this.loading = true;
             pmoLib.getSchedule(this.location.id).then(r=>{
-                this.schedule = r.data;
+                this.schedule = r.data[0];
+                this.assignmentDays = new PMOLib.DayList();
+                this.schedule.assignmentDays.forEach(e => {
+                    this.assignmentDays.setDayOfWeek(e.dayOfWeek,true,e.id,e.locId, e.assignmentShiftss);
+                });
+                this.buildCurrentDayList(this.dayListSize,this.date)
             }).catch(()=>{
                 pmoLib.generalError(this, "There was an error loading the " + this.location.name + " schedule, please try again later");
             }).finally(()=>{
@@ -97,14 +68,54 @@ export default {
             })
         },
         lastSchedule() {
-
+            // Backwards in schedule (complicated... -_-)
+            // Need to find date of first element - dayListSize
+            let djs = DayJS(this.currentDayList[0].date);
+            let currentDayCount = 0;
+            while (currentDayCount < this.dayListSize) {
+                djs = djs.add(-1,'day');
+                if (this.assignmentDays.getDayOfWeekZeroStart(djs.day()).active) {
+                    ++currentDayCount;
+                }
+            }
+            // djs should now contain the start of the previous dayListSize
+            this.date = djs.toDate();
+            this.buildCurrentDayList(this.dayListSize, this.date);
         },
         nextSchedule() {
-
+            // Advance to next schedule
+            this.date = DayJS(this.currentDayList[this.currentDayList.length - 1].date).add(1,'day').toDate();
+            this.buildCurrentDayList(this.dayListSize, this.date);
+        },
+        buildCurrentDayList(dayCount, startDate) {
+            if (this.schedule.assignmentDays.length === 0) { 
+                this.currentDayList = [];
+                return; 
+            }
+            let djs = DayJS(startDate).set('hour',0).set('minute',0).set('second', 0);
+            let currentDayCount = 0;
+            let safety = 0;
+            this.currentDayList = [];
+            while (currentDayCount < dayCount && safety < 60) {
+                if (this.assignmentDays.getDayOfWeekZeroStart(djs.day()).active) {
+                    let pushDay = Object.assign({},this.assignmentDays.getDayOfWeekZeroStart(djs.day()));
+                    pushDay.date = djs.toDate();
+                    this.currentDayList.push(pushDay);
+                    ++currentDayCount;
+                }
+                safety++;
+                djs = djs.add(1,'day');
+            }
+        },
+        formattedDateText(date, format) {
+            return DayJS(date).format(format).toString();
         }
     },
     mounted() {
         this.getSchedule();
+    },
+    components: {
+        ShiftView
     }
 }
 </script>
