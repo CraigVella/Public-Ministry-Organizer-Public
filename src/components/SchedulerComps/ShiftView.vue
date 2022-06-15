@@ -1,24 +1,47 @@
 <template>
     <div class="panel">
         <p class="panel-tabs">
-            {{shiftTimes}}
+            <b>{{shiftTimes}}</b>
         </p>
         <a class="panel-block" v-for="x in shift.slots" :key="x">
             <SlotView v-if="!loading" :idx="x-1" :signup="sortedSignups ? sortedSignups.signups[x-1] : {}" :userObj="userObj" :shiftId="shift.id"></SlotView>
             <b-skeleton :active="loading"></b-skeleton>
         </a>
         <p class="panel-block">
-            <b-field grouped position="is-centered" style="width: 100%">
-                <p class="control">
-                    <b-button :loading='loading' type='is-primary is-small' icon-left="pencil">Signup</b-button>
+            <b-field v-if="!loading && !hasCurrentDatePassed" grouped position="is-centered" style="width: 100%">
+                <p class="control" v-if="!amIScheduled && canISchedule">
+                    <b-button :loading="scheduling" @click="signup(false)" type='is-primary is-small' icon-left="pencil">Signup</b-button>
+                </p>
+                <p class="control" v-if="amIScheduled">
+                    <b-button :loading="scheduling" @click="updateNote" type='is-warning is-small' icon-left="pencil">{{myNote ? 'Edit' : 'Add'}} Note</b-button>
+                </p>
+                <p class="control" v-if="amIScheduled">
+                    <b-button :loading="scheduling" @click="unschedule" type='is-danger is-small' icon-left="cancel">Unschedule</b-button>
+                </p>
+                <p class="control" v-if="!amIScheduled && canIScheduleAsAKeyMan">
+                    <b-button :loading="scheduling" @click="signup(true)" type='is-warning is-small' icon-left="key">Signup as Keyman</b-button>
+                </p>
+                <p class="control" v-if="!amIScheduled && !canISchedule && !canIScheduleAsAKeyMan">
+                    <b-button disabled type='is-danger is-small' icon-left="cancel">Schedule is full</b-button>
                 </p>
             </b-field>
+            <b-field v-if="hasCurrentDatePassed" grouped position="is-centered" style="width: 100%">
+                <p class="control">
+                    <b-button disabled type='is-small' icon-left="cancel">Date has passed</b-button>
+                </p>
+            </b-field>
+            <b-skeleton :active="loading"></b-skeleton>
         </p>
+        <b-modal v-model="noteModalOpen"  trap-focus aria-role="dialog" 
+            aria-modal :can-cancel="false" :full-screen="this.$isMobile()">
+            <AddEditNote :note="myNote" @onNoteReturn="onNoteReturn" @cancel="noteModalOpen = false"></AddEditNote>
+        </b-modal>
     </div>
 </template>
 
 <script>
 import SlotView from './SlotView.vue';
+import AddEditNote from './AddEditNote.vue';
 
 import DayJS from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -45,12 +68,14 @@ export default {
             loading: false,
             userObj: null,
             signups: [],
-            sortedSignups: null
+            sortedSignups: null,
+            scheduling: false,
+            noteModalOpen: false
         }
     },
     methods: {
         getSignups() {
-            this. loading = true;
+            this.loading = true;
             pmoLib.getSignupsForShift(this.shift.id,this.date).then(r => {
                 this.userObj = r.api.user;
                 this.signups = r.data;
@@ -62,13 +87,47 @@ export default {
                 this.loading = false;
             });
         },
-        getNameForSlot(slot, hasKeyPerson) {
-            console.log(hasKeyPerson)
-            if (slot < this.signups.length) {
-                return this.signups[slot].publishers.lastName + ', ' + this.signups[slot].publishers.firstName;
-            } else {
-                return "Open";
-            }
+        signup(asKeyMan) {
+            let keyManString = asKeyMan ? 'Y' : 'N';
+            this.scheduling = true;
+            pmoLib.signUpForShift(this.shift.id,this.date,'',keyManString).then(r => {
+                if (r.api.status.error) {
+                    pmoLib.generalError(this,r.api.status.info);
+                }
+                this.getSignups();
+            }).finally(()=>{
+                this.scheduling = false;
+            }).catch(()=>{
+                pmoLib.generalError(this, "There was an error communicating with the server, please try again later");
+            })
+        },
+        unschedule() {
+            this.scheduling = true;
+            pmoLib.removeFromShift(this.assignmentPersonId).then(r => {
+                if (r.api.status.error) {
+                    pmoLib.generalError(this,r.api.status.info);
+                }
+                this.getSignups();
+            }).finally(()=>{
+                this.scheduling = false;
+            }).catch(()=>{
+                pmoLib.generalError(this, "There was an error communicating with the server, please try again later");
+            })
+        },
+        updateNote() {
+            this.noteModalOpen = true;
+        },
+        onNoteReturn(note) {
+            pmoLib.updateNote(this.assignmentPersonId, note ? note : '').then(r => {
+                if (r.api.status.error) {
+                    pmoLib.generalError(this,r.api.status.info);
+                }
+                this.getSignups();
+            }).finally(()=>{
+                this.noteModalOpen = false;
+            }).catch(()=>{
+                pmoLib.generalError(this, "There was an error communicating with the server, please try again later");
+            })
         }
     },
     mounted() {
@@ -77,10 +136,73 @@ export default {
     computed: {
         shiftTimes() {
             return DayJS.utc(this.shift.shiftStart).format("H:mma") + " - " + DayJS.utc(this.shift.shiftEnd).format("H:mma");
+        },
+        amIScheduled(){
+            let signedUp = false;
+            if (this.sortedSignups) {
+                this.sortedSignups.signups.forEach(e => {
+                    if (e.populated && e.signupObject.pubId === this.userObj.id) {
+                        signedUp = true;
+                    }
+                });
+            }
+            return signedUp;
+        },
+        amIScheduledAsKeyMan() {
+            let scheduledAsKeyMan = false;
+            if (this.sortedSignups && this.sortedSignups.hasKeyPerson ) {
+                this.sortedSignups.signups.forEach(e => {
+                    if (e.keyPersonSlot && e.populated && e.signupObject.pubId === this.userObj.id) {
+                        scheduledAsKeyMan = true;
+                    }
+                });
+            } 
+            return scheduledAsKeyMan;
+        },
+        canIScheduleAsAKeyMan() {
+            if (this.sortedSignups) {
+                if (this.userObj.keyPerson === 'Y' && !this.amIScheduled && this.sortedSignups.keyPersonSlotsLeft > 0) {
+                    return true;
+                }
+            }
+            return false;
+        },
+        canISchedule() {
+            if (this.sortedSignups) {
+                if (!this.amIScheduled && this.sortedSignups.slotsLeft > 0) {
+                    return true;
+                }
+            }
+            return false;
+        },
+        hasCurrentDatePassed() {
+            return DayJS(this.date).isBefore();
+        },
+        assignmentPersonId() {
+            let aId = null;
+            if (this.sortedSignups && this.amIScheduled) {
+                this.sortedSignups.signups.forEach(e => {
+                    if (e.populated && e.signupObject.pubId === this.userObj.id) {
+                        aId = e.signupObject.id;
+                    }
+                });
+            }
+            return aId;
+        },
+        myNote() {
+            let note = null;
+            if (this.sortedSignups && this.amIScheduled) {
+                this.sortedSignups.signups.forEach(e => {
+                    if (e.populated && e.signupObject.pubId === this.userObj.id) {
+                        note = e.signupObject.note;
+                    }
+                });
+            }
+            return note;
         }
     },
     components: {
-        SlotView
+        SlotView, AddEditNote
     }
 }
 </script>
