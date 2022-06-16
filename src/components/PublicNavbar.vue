@@ -41,8 +41,8 @@ export default {
         }
     },
     props: {
-        user: Object
-    },
+        user: Object // if you add the active item here from root it will fix the bug of being re-logged in after
+    },               // session time out and the wrong page being selected in the navbar, but i have to test it
     methods: {
         menuLogout() {
             this.$emit('logout')

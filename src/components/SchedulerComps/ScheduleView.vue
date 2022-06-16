@@ -41,6 +41,11 @@ export default {
     props: {
         location: Object
     },
+    watch: {
+        location() {
+            this.getSchedule()
+        }
+    },
     data() {
         return {
             schedule: null,

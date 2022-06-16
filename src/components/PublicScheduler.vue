@@ -28,12 +28,18 @@ export default {
         getLocations() {
             this.loading = true;
             pmoLib.getLocations().then(r=>{
+                if (!r.api.logged_in) {
+                    this.$emit('loginIssue')
+                }
                 this.locations = r.data;
             }).catch(()=>{
                 pmoLib.generalError(this,"There was an error retrieving locations, please try again later");
             }).finally(()=>{
                 this.loading = false;
             })
+        },
+        pageVisibleTrigger() {
+            this.getLocations();
         }
     },
     mounted() {

@@ -52,6 +52,9 @@ export default {
         getUpcoming() {
             this.loading = true;
             pmoLib.getMyUpcoming(DayJS().format('YYYY-MM-DD').toString()).then(r=>{
+                if (!r.api.logged_in) {
+                    this.$emit('loginIssue')
+                }
                 this.upcomingSchedule = r.data;
             }).catch(()=>{
                 this.$buefy.toast.open({
@@ -63,6 +66,9 @@ export default {
             })
         },
         unscheduleEvent() {
+            this.getUpcoming();
+        },
+        pageVisibleTrigger() {
             this.getUpcoming();
         }
     }, 

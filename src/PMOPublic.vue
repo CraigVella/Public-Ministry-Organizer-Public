@@ -4,8 +4,8 @@
     <PageLogin v-if="!logged_in" v-on:logged-in="loginComplete"></PageLogin>
     <div v-if="logged_in">
       <PublicNavbar ref="navbar" v-on:logout="logout" :user="userObj" v-on:menuselect="menuSelect"></PublicNavbar>
-      <PublicScheduler v-if="pageSelect === 'scheduler'" :user="userObj"></PublicScheduler>
-      <PublicUpcoming v-if="pageSelect === 'upcoming'" @toScheduler="$refs.navbar.menuSelect('scheduler')" :user="userObj"></PublicUpcoming>
+      <PublicScheduler @loginIssue='attemptAutoLogin' v-if="pageSelect === 'scheduler'" :user="userObj" ref="scheduler"></PublicScheduler>
+      <PublicUpcoming @loginIssue='attemptAutoLogin' v-if="pageSelect === 'upcoming'" @toScheduler="$refs.navbar.menuSelect('scheduler')" :user="userObj" ref="upcoming"></PublicUpcoming>
     </div>
     <PageFooter></PageFooter>
   </div>
@@ -68,33 +68,52 @@ export default {
       }).catch( () => {
         pmoLib.generalError(this,'There was an error logging out - Please try again later');
       });
+    },
+    attemptAutoLogin() {
+      pmoLib.isLoggedIn().then( r=> {
+        this.logged_in = r;
+        if (this.logged_in) {
+          this.loginComplete();
+        } else {
+          // attempt to see if we have a device ID
+          if (Cookies.get('deviceId')) {
+            // We have a cookie
+            pmoLib.deviceLogin(Cookies.get('deviceId')).then(r=> {
+              this.logged_in = r.api.logged_in;
+              if (this.logged_in) {
+                // rewrite cookie for longer time
+                Cookies.set('deviceId', Cookies.get('deviceId'),{expires: 365});
+                this.loginComplete();
+              } else {
+                this.loading = false; // we have failed the device Id lets drop it
+                Cookies.remove('deviceId');
+              }
+            })
+          } else {
+            this.loading = false; // No cookie no login
+          }
+        }
+      })
     }
   },
   mounted() {
-    pmoLib.isLoggedIn().then( r=> {
-      this.logged_in = r;
-      if (this.logged_in) {
-        this.loginComplete();
-      } else {
-        // attempt to see if we have a device ID
-        if (Cookies.get('deviceId')) {
-          // We have a cookie
-          pmoLib.deviceLogin(Cookies.get('deviceId')).then(r=> {
-            this.logged_in = r.api.logged_in;
-            if (this.logged_in) {
-              // rewrite cookie for longer time
-              Cookies.set('deviceId', Cookies.get('deviceId'),{expires: 365});
-              this.loginComplete();
-            } else {
-              this.loading = false; // we have failed the device Id lets drop it
-              Cookies.remove('deviceId');
+    this.attemptAutoLogin();
+  },
+  created() { // This is really for PWA to refresh data if you minimize it
+    document.addEventListener("visibilitychange",()=> {
+            if (document.visibilityState === 'visible') {
+                if (this.logged_in) {
+                  switch(this.pageSelect) {
+                    case 'scheduler':
+                      this.$refs.scheduler.pageVisibleTrigger();
+                      break;
+                    case 'upcoming':
+                      this.$refs.upcoming.pageVisibleTrigger();
+                      break;
+                  }
+                }
             }
-          })
-        } else {
-          this.loading = false; // No cookie no login
-        }
-      }
-    })
+        })
   }
 }
 </script>
