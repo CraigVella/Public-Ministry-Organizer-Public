@@ -12,8 +12,8 @@
                 <hr class="mt-1 mb-2" />
                 <div v-for="(location, ldx) in event.location" :key="ldx" class="content">
                     <span class="subtitle">{{location.name}}</span>
-                    <div class="columns ">
-                        <div v-for="(shift, sdx) in location.shifts" :key="sdx" class="column is-one-third">
+                    <div class="columns pt-3" style="flex-wrap: wrap;">
+                        <div v-for="(shift, sdx) in location.shifts" :key="sdx" class="column is-4">
                             <ShiftView @onUnschedule="unscheduleEvent" :date="formattedDateText(event.date,'YYYY-MM-DD')" :shift="shift"></ShiftView>
                         </div>
                     </div>

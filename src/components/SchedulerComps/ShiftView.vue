@@ -1,6 +1,6 @@
 <template>
     <div class="panel">
-        <p class="panel-tabs">
+        <p class="panel-tabs mb-0">
             <b>{{shiftTimes}}</b>
         </p>
         <a class="panel-block" v-for="x in shift.slots" :key="x">
