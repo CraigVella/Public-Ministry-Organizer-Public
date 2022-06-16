@@ -3,8 +3,9 @@
     <b-loading :active="loading"></b-loading>
     <PageLogin v-if="!logged_in" v-on:logged-in="loginComplete"></PageLogin>
     <div v-if="logged_in">
-      <PublicNavbar v-on:logout="logout" v-on:menuselect="menuSelect"></PublicNavbar>
+      <PublicNavbar ref="navbar" v-on:logout="logout" v-on:menuselect="menuSelect"></PublicNavbar>
       <PublicScheduler v-if="pageSelect === 'scheduler'" :user="userObj"></PublicScheduler>
+      <PublicUpcoming v-if="pageSelect === 'upcoming'" @toScheduler="$refs.navbar.menuSelect('scheduler')" :user="userObj"></PublicUpcoming>
     </div>
     <PageFooter></PageFooter>
   </div>
@@ -17,6 +18,7 @@ import PageLogin from './components/PageLogin.vue'
 import PageFooter from './components/PageFooter.vue'
 import PublicNavbar from './components/PublicNavbar.vue'
 import PublicScheduler from './components/PublicScheduler.vue';
+import PublicUpcoming from './components/PublicUpcoming.vue';
 
 import PMOLib from 'pmo-lib/PMOLib'
 let pmoLib = new PMOLib.PMO();
@@ -28,7 +30,7 @@ export default {
   },
   components: {
     PageLogin, PageFooter, PublicNavbar,
-    PublicScheduler
+    PublicScheduler, PublicUpcoming
   }, 
   data() {
     return {

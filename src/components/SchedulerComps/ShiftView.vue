@@ -61,6 +61,9 @@ export default {
     watch: {
         date() {
             this.getSignups();
+        },
+        shift() {
+            this.getSignups();
         }
     },
     data() {
@@ -93,6 +96,11 @@ export default {
             pmoLib.signUpForShift(this.shift.id,this.date,'',keyManString).then(r => {
                 if (r.api.status.error) {
                     pmoLib.generalError(this,r.api.status.info);
+                } else {
+                    this.$buefy.toast.open({
+                        type: 'is-success',
+                        message: "You have been succesfully scheduled"
+                    });
                 }
                 this.getSignups();
             }).finally(()=>{
@@ -102,17 +110,32 @@ export default {
             })
         },
         unschedule() {
-            this.scheduling = true;
-            pmoLib.removeFromShift(this.assignmentPersonId).then(r => {
-                if (r.api.status.error) {
-                    pmoLib.generalError(this,r.api.status.info);
-                }
-                this.getSignups();
-            }).finally(()=>{
-                this.scheduling = false;
-            }).catch(()=>{
-                pmoLib.generalError(this, "There was an error communicating with the server, please try again later");
-            })
+            this.$buefy.dialog.confirm({
+                    title: 'Unschedule',
+                    message: 'Are you sure you want to <b>unschedule</b> yourself?',
+                    confirmText: 'Unschedule',
+                    type: 'is-danger',
+                    hasIcon: true,
+                    onConfirm: () => {
+                        this.scheduling = true;
+                        pmoLib.removeFromShift(this.assignmentPersonId).then(r => {
+                            if (r.api.status.error) {
+                                pmoLib.generalError(this,r.api.status.info);
+                            } else {
+                                this.$buefy.toast.open({
+                                    type: 'is-danger',
+                                    message: "You have been succesfully unscheduled"
+                                });
+                            }
+                            this.$emit('onUnschedule');
+                            this.getSignups();
+                        }).finally(()=>{
+                            this.scheduling = false;
+                        }).catch(()=>{
+                            pmoLib.generalError(this, "There was an error communicating with the server, please try again later");
+                        })
+                    }
+                })
         },
         updateNote() {
             this.noteModalOpen = true;
@@ -121,6 +144,11 @@ export default {
             pmoLib.updateNote(this.assignmentPersonId, note ? note : '').then(r => {
                 if (r.api.status.error) {
                     pmoLib.generalError(this,r.api.status.info);
+                } else {
+                    this.$buefy.toast.open({
+                        type: 'is-warning',
+                        message: "Note updated"
+                    });
                 }
                 this.getSignups();
             }).finally(()=>{
@@ -135,7 +163,7 @@ export default {
     },
     computed: {
         shiftTimes() {
-            return DayJS.utc(this.shift.shiftStart).format("H:mma") + " - " + DayJS.utc(this.shift.shiftEnd).format("H:mma");
+            return DayJS.utc(this.shift.shiftStart).format("h:mma") + " - " + DayJS.utc(this.shift.shiftEnd).format("h:mma");
         },
         amIScheduled(){
             let signedUp = false;
@@ -176,7 +204,7 @@ export default {
             return false;
         },
         hasCurrentDatePassed() {
-            return DayJS(this.date).isBefore();
+            return DayJS(this.date).isBefore(DayJS().add(-1,'day').toDate());
         },
         assignmentPersonId() {
             let aId = null;

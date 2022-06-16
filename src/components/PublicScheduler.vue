@@ -1,5 +1,5 @@
 <template>
-    <div class="section container">
+    <div class="section container" style="padding-top: 1em;">
         <b-tabs type="is-centered" :destroy-on-hide='true' expanded class="block" multiline :animated="false">
             <ScheduleView v-for="location in locations" :location="location.assignmentLocations" :key="location.assignmentLocations.id"></ScheduleView>
         </b-tabs>
