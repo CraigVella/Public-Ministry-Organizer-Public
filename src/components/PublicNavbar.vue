@@ -15,8 +15,12 @@
             <b-navbar-item :active="activeItem=='scheduler'" @click="menuSelect('scheduler')">
                 <b-icon icon='clock'></b-icon>&nbsp; Scheduler
             </b-navbar-item>
+            
         </template>
         <template #end>
+            <b-navbar-item v-if="user.congAdmin === 1" @click="goAdmin">
+                <b-icon icon='application-cog'></b-icon>&nbsp; Admin Panel
+            </b-navbar-item>
             <b-navbar-item @click="menuLogout" tag="div">
                 <div class="buttons">
                     <a class="button is-light">
@@ -36,6 +40,9 @@ export default {
             activeItem: "upcoming"
         }
     },
+    props: {
+        user: Object
+    },
     methods: {
         menuLogout() {
             this.$emit('logout')
@@ -43,6 +50,9 @@ export default {
         menuSelect(item) {
             this.activeItem = item;
             this.$emit('menuselect',item);
+        },
+        goAdmin() {
+            window.open('/admin','_blank');
         }
     }
 }

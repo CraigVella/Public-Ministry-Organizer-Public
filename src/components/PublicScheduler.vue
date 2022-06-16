@@ -41,6 +41,9 @@ export default {
     },
     components: {
         ScheduleView
+    },
+    metaInfo: {
+        title: " :: Scheduler"
     }
 }
 </script>

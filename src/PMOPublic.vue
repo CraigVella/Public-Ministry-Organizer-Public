@@ -3,7 +3,7 @@
     <b-loading :active="loading"></b-loading>
     <PageLogin v-if="!logged_in" v-on:logged-in="loginComplete"></PageLogin>
     <div v-if="logged_in">
-      <PublicNavbar ref="navbar" v-on:logout="logout" v-on:menuselect="menuSelect"></PublicNavbar>
+      <PublicNavbar ref="navbar" v-on:logout="logout" :user="userObj" v-on:menuselect="menuSelect"></PublicNavbar>
       <PublicScheduler v-if="pageSelect === 'scheduler'" :user="userObj"></PublicScheduler>
       <PublicUpcoming v-if="pageSelect === 'upcoming'" @toScheduler="$refs.navbar.menuSelect('scheduler')" :user="userObj"></PublicUpcoming>
     </div>

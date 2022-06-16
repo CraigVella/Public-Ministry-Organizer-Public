@@ -71,6 +71,9 @@ export default {
     },
     components: {
         ShiftView
+    }, 
+    metaInfo: {
+        title: " :: My Upcoming Schedule"
     }
 }
 </script>
