@@ -56,6 +56,8 @@
 </template>
 
 <script>
+import libPN from 'libphonenumber-js';
+
 export default {
     name: "SlotView",
     props: {
@@ -74,7 +76,8 @@ export default {
     },
     methods: {
         phoneClick(phone) {
-            window.open("tel:"+phone,'_top');
+            const phoneNum = libPN(phone,'US');
+            window.open(phoneNum.getURI(),'_top');
         },
         emailClick(email) {
             window.open("mailto:"+email,'_top')

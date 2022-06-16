@@ -80,7 +80,7 @@ export default {
         if (Cookies.get('deviceId')) {
           // We have a cookie
           pmoLib.deviceLogin(Cookies.get('deviceId')).then(r=> {
-            this.logged_in = r;
+            this.logged_in = r.api.logged_in;
             if (this.logged_in) {
               // rewrite cookie for longer time
               Cookies.set('deviceId', Cookies.get('deviceId'),{expires: 365});
