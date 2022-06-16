@@ -34,7 +34,7 @@
 
 <script>
 export default {
-    name: "AdminNavbar",
+    name: "PublicNavbar",
     data() {
         return {
             activeItem: "upcoming"
@@ -52,7 +52,7 @@ export default {
             this.$emit('menuselect',item);
         },
         goAdmin() {
-            window.open('/admin','_blank');
+            window.open('/admin');
         }
     }
 }

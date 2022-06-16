@@ -13,9 +13,14 @@ Vue.use(Buefy);
 Vue.use(VueMobileDetection);
 
 Vue.prototype.$pmoInfo = {
-  version: "1.0.5"
+  version: "1.0.7"
 };
 
 new Vue({
   render: h => h(PMOPublic),
 }).$mount('#pmo-public')
+
+if ('serviceWorker' in navigator) { 
+  // register service worker 
+  navigator.serviceWorker.register('/service-worker.js'); 
+}
