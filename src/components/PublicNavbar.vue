@@ -52,7 +52,7 @@ export default {
             this.$emit('menuselect',item);
         },
         goAdmin() {
-            window.open('/admin');
+            window.open('/admin','_self');
         }
     }
 }
