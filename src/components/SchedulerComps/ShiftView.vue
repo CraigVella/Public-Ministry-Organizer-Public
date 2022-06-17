@@ -5,7 +5,13 @@
         </p>
         <a class="panel-block" v-for="x in shift.slots" :key="x">
             <SlotView v-if="!loading" :idx="x-1" :signup="sortedSignups ? sortedSignups.signups[x-1] : {}" :userObj="userObj" :shiftId="shift.id"></SlotView>
-            <b-skeleton :active="loading"></b-skeleton>
+            <div v-if="loading" class="loading-slot">
+                <span class="panel-icon">
+                    <b-icon :icon="signup.keyPersonSlot ? 'key' : 'account'"
+                    :type="signup.populated ? 'is-success' : ''"></b-icon>
+                </span>
+                <b-skeleton ></b-skeleton>
+            </div>
         </a>
         <p class="panel-block">
             <b-field v-if="!loading && !hasCurrentDatePassed" grouped position="is-centered" style="width: 100%">
@@ -30,7 +36,11 @@
                     <b-button disabled type='is-small' icon-left="cancel">Date has passed</b-button>
                 </p>
             </b-field>
-            <b-skeleton :active="loading"></b-skeleton>
+            <b-field v-if="loading" grouped position="is-centered" style="width: 100%">
+                <p class="control">
+                    <b-icon type='is-small' icon="loading" custom-class="mdi-spin"></b-icon>
+                </p>
+            </b-field>
         </p>
         <b-modal v-model="noteModalOpen"  trap-focus aria-role="dialog" 
             aria-modal :can-cancel="false" :full-screen="this.$isMobile()">
@@ -238,5 +248,10 @@ export default {
 <style>
 .last {
     border-bottom: 1px solid black;
+}
+.loading-slot{
+    width: 100%; 
+    display: flex; 
+    height: 24px;
 }
 </style>
