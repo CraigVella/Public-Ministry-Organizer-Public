@@ -21,6 +21,9 @@
             <b-navbar-item v-if="user.congAdmin === 1" @click="goAdmin">
                 <b-icon icon='application-cog'></b-icon>&nbsp; Admin Panel
             </b-navbar-item>
+            <b-navbar-item @click="$emit('openProfile')">
+                <b-icon icon='cog'></b-icon>&nbsp; My Profile
+            </b-navbar-item>
             <b-navbar-item @click="menuLogout" tag="div">
                 <div class="buttons">
                     <a class="button is-light">

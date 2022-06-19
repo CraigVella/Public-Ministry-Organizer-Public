@@ -16,6 +16,7 @@
     "libphonenumber-js": "^1.10.6",
     "sass": "^1.52.3",
     "sass-loader": "^13.0.0",
+    "validator": "^13.7.0",
     "vue": "^2.6.14",
     "vue-meta": "^2.4.0",
     "vue-mobile-detection": "^1.0.0"

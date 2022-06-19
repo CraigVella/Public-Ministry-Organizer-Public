@@ -3,9 +3,13 @@
     <b-loading :active="loading"></b-loading>
     <PageLogin v-if="!logged_in" v-on:logged-in="loginComplete"></PageLogin>
     <div v-if="logged_in">
-      <PublicNavbar ref="navbar" v-on:logout="logout" :user="userObj" v-on:menuselect="menuSelect"></PublicNavbar>
+      <PublicNavbar ref="navbar" @openProfile="editProfileModal = true" v-on:logout="logout" :user="userObj" v-on:menuselect="menuSelect"></PublicNavbar>
       <PublicScheduler @loginIssue='attemptAutoLogin' v-if="pageSelect === 'scheduler'" :user="userObj" ref="scheduler"></PublicScheduler>
       <PublicUpcoming @loginIssue='attemptAutoLogin' v-if="pageSelect === 'upcoming'" @toScheduler="$refs.navbar.menuSelect('scheduler')" :user="userObj" ref="upcoming"></PublicUpcoming>
+      <b-modal v-model="editProfileModal"  trap-focus aria-role="dialog" 
+            aria-modal :can-cancel="false" :full-screen="this.$isMobile()">
+            <EditProfile :user="userObj" @profileUpdated="profileUpdated" @profileClose="editProfileModal = false"></EditProfile>
+      </b-modal>
     </div>
     <PageFooter></PageFooter>
   </div>
@@ -19,6 +23,7 @@ import PageFooter from './components/PageFooter.vue'
 import PublicNavbar from './components/PublicNavbar.vue'
 import PublicScheduler from './components/PublicScheduler.vue';
 import PublicUpcoming from './components/PublicUpcoming.vue';
+import EditProfile from './components/EditProfile.vue';
 
 import PMOLib from 'pmo-lib/PMOLib'
 let pmoLib = new PMOLib.PMO();
@@ -30,7 +35,7 @@ export default {
   },
   components: {
     PageLogin, PageFooter, PublicNavbar,
-    PublicScheduler, PublicUpcoming
+    PublicScheduler, PublicUpcoming, EditProfile
   }, 
   data() {
     return {
@@ -41,7 +46,8 @@ export default {
           congName: ''
         }
       },
-      pageSelect: 'upcoming'
+      pageSelect: 'upcoming',
+      editProfileModal: false
     }
   },
   methods: {
@@ -69,6 +75,11 @@ export default {
         pmoLib.generalError(this,'There was an error logging out - Please try again later');
       });
     },
+    profileUpdated() {
+      this.loginComplete();
+      this.visibilityChange(); // Force a refresh on pages that are open
+      this.editProfileModal = false;
+    }, 
     attemptAutoLogin() {
       pmoLib.isLoggedIn().then( r=> {
         this.logged_in = r;
@@ -94,26 +105,27 @@ export default {
           }
         }
       })
+    },
+    visibilityChange() {
+      if (document.visibilityState === 'visible') {
+          if (this.logged_in) {
+            switch(this.pageSelect) {
+              case 'scheduler':
+                this.$refs.scheduler.pageVisibleTrigger();
+                break;
+              case 'upcoming':
+                this.$refs.upcoming.pageVisibleTrigger();
+                break;
+            }
+          }
+      }
     }
   },
   mounted() {
     this.attemptAutoLogin();
   },
   created() { // This is really for PWA to refresh data if you minimize it
-    document.addEventListener("visibilitychange",()=> {
-            if (document.visibilityState === 'visible') {
-                if (this.logged_in) {
-                  switch(this.pageSelect) {
-                    case 'scheduler':
-                      this.$refs.scheduler.pageVisibleTrigger();
-                      break;
-                    case 'upcoming':
-                      this.$refs.upcoming.pageVisibleTrigger();
-                      break;
-                  }
-                }
-            }
-        })
+    document.addEventListener("visibilitychange",this.visibilityChange)
   }
 }
 </script>
