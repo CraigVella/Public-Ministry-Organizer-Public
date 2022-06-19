@@ -32,6 +32,12 @@
                 </b-field>
                 <b-field :position="this.$isMobile() ? '' : 'is-centered'" grouped group-multiline>
                     <p class="control">
+                        <b-taglist attached @click.stop.native="smsClick(signup.signupObject.publishers.phone)">
+                            <b-tag icon="message-processing" type="is-dark"></b-tag>
+                            <b-tag type="is-primary">Send an SMS</b-tag>
+                        </b-taglist>
+                    </p>
+                    <p class="control">
                         <b-taglist attached @click.stop.native="phoneClick(signup.signupObject.publishers.phone)">
                             <b-tag icon="phone" type="is-dark"></b-tag>
                             <b-tag type="is-primary">{{signup.signupObject.publishers.phone}}</b-tag>
@@ -81,6 +87,10 @@ export default {
         },
         emailClick(email) {
             window.open("mailto:"+email,'_top')
+        },
+        smsClick(phone) {
+            const phoneNum = libPN(phone,'US');
+            window.open('sms://'+phoneNum.formatInternational(),'_top');
         }
     },
     computed: {

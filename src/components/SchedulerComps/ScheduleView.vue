@@ -53,8 +53,14 @@ export default {
             date: DayJS().set('hour',0).set('minute',0).set('second', 0).toDate(),
             assignmentDays: new PMOLib.DayList(),
             currentDayList: [],
-            dayListSize: 3
+            mobileDayListSize: 1,
+            desktopDayListSize: 3,
+            dayListSize: 3,
+            mobileBreakPoint: 768 // pixel size of when to set the dayListSize
         }
+    },
+    created() {
+        this.dayListSize = (document.documentElement.clientWidth > this.mobileBreakPoint) ? this.desktopDayListSize : this.mobileDayListSize
     },
     methods: {
         getSchedule() {
@@ -114,10 +120,27 @@ export default {
         },
         formattedDateText(date, format) {
             return DayJS(date).format(format).toString();
+        },
+        resizeEvent() {
+            if (document.documentElement.clientWidth <= this.mobileBreakPoint) {
+                if (this.dayListSize !== this.mobileDayListSize) {
+                    this.dayListSize = this.mobileDayListSize;
+                    this.getSchedule();
+                } 
+            } else {
+                if (this.dayListSize !== this.desktopDayListSize) {
+                    this.dayListSize = this.desktopDayListSize;
+                    this.getSchedule();
+                }
+            }
         }
     },
     mounted() {
         this.getSchedule();
+        window.addEventListener('resize', this.resizeEvent);
+    },
+    unmounted() {
+        window.removeEventListener('resize', this.resizeEvent);
     },
     components: {
         ShiftView
