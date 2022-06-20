@@ -11,8 +11,15 @@
                 <span class="title is-4">{{formattedDateText(event.date,"dddd - M/D/YY")}}</span>
                 <hr class="mt-1 mb-2" />
                 <div v-for="(location, ldx) in event.location" :key="ldx" class="content">
-                    <span class="subtitle">{{location.name}}</span>
-                    <div class="columns pt-3" style="flex-wrap: wrap;">
+                    <div class="level is-mobile">
+                        <div class="level-left">
+                            <span class="subtitle">{{location.name}}</span>
+                        </div>
+                        <div class="level-right">
+                            <WeatherObject :date="formattedDateText(event.date,'YYYY-MM-DD')" :zip="location.zip" :primary="true"></WeatherObject>
+                        </div>
+                    </div>
+                    <div class="columns" style="flex-wrap: wrap;">
                         <div v-for="(shift, sdx) in location.shifts" :key="sdx" class="column is-4">
                             <ShiftView @onUnschedule="unscheduleEvent" :date="formattedDateText(event.date,'YYYY-MM-DD')" :shift="shift"></ShiftView>
                         </div>
@@ -25,6 +32,8 @@
 
 <script>
 import ShiftView from './SchedulerComps/ShiftView.vue';
+import WeatherObject from './SchedulerComps/WeatherObject.vue';
+
 import DayJS from 'dayjs';
 import tz from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
@@ -76,7 +85,7 @@ export default {
         this.getUpcoming();
     },
     components: {
-        ShiftView
+        ShiftView, WeatherObject
     }, 
     metaInfo: {
         title: " :: My Upcoming Schedule"

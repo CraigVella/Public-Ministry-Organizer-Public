@@ -13,11 +13,14 @@
         <div class="columns is-centered">
             <div v-for="(day,idx) in currentDayList" v-bind:key="idx" class="column">
                 <div class="panel">
-                    <p class="panel-heading has-text-centered">
-                        {{formattedDateText(day.date,'dddd - M/D/YY')}}
-                    </p>
+                    <div class="panel-heading">
+                        <div class="level is-mobile">
+                            <div class='level-item has-text-centered'>{{formattedDateText(day.date,'dddd - M/D/YY')}}</div>
+                            <WeatherObject :primary="true" :zip="location.zip" :date="formattedDateText(day.date,'YYYY-MM-DD')"></WeatherObject>
+                        </div>
+                    </div>
                 </div>
-                <ShiftView v-for="(shift,idx) in day.shifts" v-bind:key="idx" :shift="shift" :date="formattedDateText(day.date,'YYYY-MM-DD')"></ShiftView>
+                    <ShiftView v-for="(shift,idx) in day.shifts" v-bind:key="idx" :shift="shift" :date="formattedDateText(day.date,'YYYY-MM-DD')"></ShiftView>
             </div>
         </div>
         <b-loading :active="loading" :is-full-page="false"></b-loading>
@@ -26,6 +29,7 @@
 
 <script>
 import ShiftView from './ShiftView.vue';
+import WeatherObject from './WeatherObject.vue';
 
 import PMOLib from 'pmo-lib/PMOLib';
 let pmoLib = new PMOLib.PMO();
@@ -54,13 +58,21 @@ export default {
             assignmentDays: new PMOLib.DayList(),
             currentDayList: [],
             mobileDayListSize: 1,
+            tabletDayListSize: 2,
             desktopDayListSize: 3,
             dayListSize: 3,
-            mobileBreakPoint: 768 // pixel size of when to set the dayListSize
+            mobileBreakPoint: 768, // pixel size of when to set the dayListSize
+            tabletBreakPoint: 1023
         }
     },
     created() {
-        this.dayListSize = (document.documentElement.clientWidth > this.mobileBreakPoint) ? this.desktopDayListSize : this.mobileDayListSize
+        if (document.documentElement.clientWidth <= this.mobileBreakPoint) {
+            this.dayListSize = this.mobileDayListSize;
+        } else if (document.documentElement.clientWidth > this.mobileBreakPoint && document.documentElement.clientWidth <= this.tabletBreakPoint) {
+            this.dayListSize = this.tabletDayListSize;
+        } else {
+            this.dayListSize = this.desktopDayListSize;
+        }
     },
     methods: {
         getSchedule() {
@@ -127,6 +139,11 @@ export default {
                     this.dayListSize = this.mobileDayListSize;
                     this.getSchedule();
                 } 
+            } else if (document.documentElement.clientWidth > this.mobileBreakPoint && document.documentElement.clientWidth <= this.tabletBreakPoint) {
+                if (this.dayListSize !== this.tabletDayListSize) {
+                    this.dayListSize = this.tabletDayListSize;
+                    this.getSchedule();
+                } 
             } else {
                 if (this.dayListSize !== this.desktopDayListSize) {
                     this.dayListSize = this.desktopDayListSize;
@@ -143,7 +160,15 @@ export default {
         window.removeEventListener('resize', this.resizeEvent);
     },
     components: {
-        ShiftView
+        ShiftView, WeatherObject
     }
 }
 </script>
+
+<style>
+.schedule-panel-header-container {
+    display: flex;
+    align-content: center;
+    justify-content: center;
+}
+</style>
