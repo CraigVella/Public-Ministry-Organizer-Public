@@ -109,8 +109,6 @@ export default {
             if (!validator.isEmail(this.updatedUser.email)) {
                 pmoLib.generalError(this, "Email address must be populated and valid");
                 return false;
-            } else {
-                this.updatedUser.email = validator.normalizeEmail(this.updatedUser.email);
             }
             if (validator.isEmpty(this.updatedUser.firstName, { ignore_whitespace:true })) {
                 pmoLib.generalError(this, "First name is a required field");
