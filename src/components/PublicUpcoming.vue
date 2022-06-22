@@ -4,7 +4,6 @@
         <b-loading :active="loading"></b-loading>
         <div v-if="!upcomingSchedule || upcomingSchedule.length === 0">
             <h1 class="subtitle">It looks like you don't have anything scheduled...</h1>
-            <b-button @click="$emit('toScheduler')" icon-left="clock-outline" type="is-primary">Click here to go to the Scheduler</b-button>
         </div>
         <div v-else>
             <div v-for="(event,edx) in upcomingSchedule" :key="edx" class="content">
@@ -26,6 +25,9 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="pt-5">
+            <b-button @click="$emit('toScheduler')" icon-left="clock-outline" type="is-primary">Click here to go to the Scheduler</b-button>
         </div>
     </div>
 </template>

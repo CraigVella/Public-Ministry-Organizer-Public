@@ -131,7 +131,7 @@ export default {
             }
         },
         formattedDateText(date, format) {
-            return DayJS(date).format(format).toString();
+            return DayJS.utc(date).format(format).toString();
         },
         resizeEvent() {
             if (document.documentElement.clientWidth <= this.mobileBreakPoint) {
