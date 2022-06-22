@@ -1,7 +1,7 @@
 <template>
     <b-navbar shadow>
         <template #brand>
-            <b-navbar-item>
+            <b-navbar-item @click="menuSelect('upcoming')">
                 <img
                     src="@/assets/pmo-nav.png"
                     alt="Public Ministry Organizer"
